@@ -235,6 +235,7 @@ export type BlockSchemaField =
   | { type: 'asset'; label?: string; assetType?: 'image' | 'audio' | 'video' | 'any'; required?: boolean }
   | { type: 'character'; label?: string; required?: boolean }
   | { type: 'characterPortrait'; label?: string; characterField?: string; required?: boolean }
+  | { type: 'characterSkin'; label?: string; characterField?: string; expressionField?: string }
   | { type: 'scene'; label?: string; required?: boolean }
   | { type: 'fragment'; label?: string; chapterField?: string; required?: boolean }
   | { type: 'position'; label?: string; default?: string }
@@ -275,7 +276,7 @@ export const BLOCK_CATALOG: BlockTypeDef[] = [
     schema: {
       characterId: { type: 'character', label: '说话角色（留空为旁白）' },
       expression: { type: 'characterPortrait', label: '立绘表情', characterField: 'characterId' },
-      skin: { type: 'string', label: '皮肤（选填）' },
+      skin: { type: 'characterSkin', label: '皮肤（选填）', characterField: 'characterId', expressionField: 'expression' },
       position: { type: 'enum', label: '立绘位置', options: POSITION_OPTIONS }
     }
   },
@@ -302,7 +303,7 @@ export const BLOCK_CATALOG: BlockTypeDef[] = [
     schema: {
       characterId: { type: 'character', label: '角色', required: true },
       expression: { type: 'characterPortrait', label: '表情', characterField: 'characterId' },
-      skin: { type: 'string', label: '皮肤（选填）' },
+      skin: { type: 'characterSkin', label: '皮肤（选填）', characterField: 'characterId', expressionField: 'expression' },
       position: { type: 'enum', label: '位置', options: POSITION_OPTIONS }
     }
   },

@@ -214,6 +214,9 @@ export function exportScript(project: Project): string {
     lines.push(`define ${safe} = Character(${q(c.name)}, color=${q(c.themeColor.fg)})`)
   }
   lines.push('')
+  lines.push('## 立绘 / 皮肤图片定义')
+  lines.push(...characterImageDefLines(project))
+  lines.push('')
 
   // 成就系统：变量为 True 时自动解锁
   if (project.achievements.length > 0) {
@@ -233,13 +236,33 @@ export function exportScript(project: Project): string {
   return lines.join('\n')
 }
 
-/** 角色定义：生成 define 语句（保存脚本时写回 characters.rpy） */
+/** 立绘（表情）与皮肤图片定义：皮肤作为立绘的附加属性，show 时叠加即可 */
+function characterImageDefLines(project: Project): string[] {
+  const lines: string[] = []
+  for (const c of project.characters) {
+    const tag = c.name.replace(/[^A-Za-z0-9_]/g, '_')
+    for (const ex of c.expressions) {
+      const expr = ex.name.replace(/[^A-Za-z0-9_]/g, '_')
+      if (ex.assetPath) lines.push(`image ${tag} ${expr} = ${q(ex.assetPath)}`)
+      for (const sk of ex.skins) {
+        const skin = sk.name.replace(/[^A-Za-z0-9_]/g, '_')
+        if (sk.assetPath) lines.push(`image ${tag} ${expr} ${skin} = ${q(sk.assetPath)}`)
+      }
+    }
+  }
+  return lines
+}
+
+/** 角色定义：生成 define 语句 + 立绘/皮肤 image 定义（保存脚本时写回 characters.rpy） */
 export function exportCharacters(project: Project): string {
   const lines: string[] = ['## 角色定义 (由 Richard Studio 生成)']
   for (const c of project.characters) {
     const safe = c.name.replace(/[^A-Za-z0-9_]/g, '_')
     lines.push(`define ${safe} = Character(${q(c.name)}, color=${q(c.themeColor.fg)})`)
   }
+  lines.push('')
+  lines.push('## 立绘 / 皮肤图片定义')
+  lines.push(...characterImageDefLines(project))
   lines.push('')
   return lines.join('\n')
 }
@@ -1065,8 +1088,10 @@ function exportBlock(b: Block, project: Project): string[] {
       if (!c) return [`${indent}## showCharacter`]
       const tag = c.name.replace(/[^A-Za-z0-9_]/g, '_')
       const expr = String(p.expression ?? '').replace(/[^A-Za-z0-9_]/g, '_')
+      const skin = String(p.skin ?? '').replace(/[^A-Za-z0-9_]/g, '_')
       const at = p.position ? ` at ${p.position}` : ''
-      return [`${indent}show ${tag} ${expr}${at}`]
+      const attrs = [expr, skin].filter(Boolean).join(' ')
+      return [`${indent}show ${tag} ${attrs}${at}`]
     }
     case 'removeCharacter': {
       const c = project.characters.find((x) => x.id === String(p.characterId))

@@ -358,6 +358,22 @@ function FieldControl({ field, value, blockProps, onChange }: { field: BlockSche
       )
     }
 
+    case 'characterSkin': {
+      const charId = field.characterField ? str(blockProps[field.characterField]) : ''
+      const exprName = field.expressionField ? str(blockProps[field.expressionField]) : ''
+      const linkedChar = project.characters.find((c) => c.id === charId)
+      const linkedExpr = linkedChar?.expressions.find((ex) => ex.name === exprName)
+      const skins = linkedExpr?.skins ?? []
+      return (
+        <select value={str(value)} onChange={(e) => onChange(e.target.value)}>
+          <option value="">（无皮肤）</option>
+          {skins.map((sk) => (
+            <option key={sk.id} value={sk.name}>{sk.name}</option>
+          ))}
+        </select>
+      )
+    }
+
     case 'scene':
       return (
         <select value={str(value)} onChange={(e) => onChange(e.target.value)}>
