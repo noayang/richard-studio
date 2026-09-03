@@ -6,6 +6,20 @@ Richard Studio 是发布者在制作《狮心王理查》（Richard the Lionhear
 
 ---
 
+## 📥 下载（零基础用户看这里）
+
+**不用装任何环境，下载后双击就能用。**
+
+1. 点页面右侧的 **Releases**（或点 [这里](../../releases)）
+2. 下载最新版本里的 **`RichardStudio-xxx-portable.exe`**（便携版，免安装）
+3. 双击运行即可
+
+> 首次运行若 Windows 弹出「Windows 已保护你的电脑」蓝色提示（因为程序未签名），点 **「更多信息」→「仍要运行」** 即可。这是未签名程序的正常提示，不是病毒。
+
+想让它出现在开始菜单 / 桌面，就下载 **`RichardStudio-xxx-setup.exe`** 安装版，走一遍安装向导即可。
+
+---
+
 ## 这是什么
 
 Richard Studio 是一个基于 **Electron + React + TypeScript** 的桌面编辑器，核心是「画布式 UI 编辑器 + 脚本块编辑 + 角色/资产/成就等系统管理 + 实时预览」，并**直接把你的所有改动写入项目的 `.rpy` 文件**。
