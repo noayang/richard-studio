@@ -1,6 +1,6 @@
 {
   "name": "richard-studio",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Richard Studio —— Ren'Py 可视化编辑器，集场景搭建、剧情树、代码编辑于一体的视觉小说 IDE",
   "main": "./out/main/index.js",
   "author": "Richard",
