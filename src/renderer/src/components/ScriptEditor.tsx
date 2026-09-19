@@ -33,6 +33,7 @@ export default function ScriptEditor(): JSX.Element {
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
   const [scriptMenu, setScriptMenu] = useState<{ x: number; y: number; kind: 'chapter' | 'fragment' } | null>(null)
   const [pendingOverwrite, setPendingOverwrite] = useState<string | null>(null)
+  const [showFileList, setShowFileList] = useState(true)
 
   // 视图模式：指令（块列表）/ 代码（原始 .rpy 文本）
   const [mode, setMode] = useState<'blocks' | 'code'>('blocks')
@@ -155,13 +156,15 @@ export default function ScriptEditor(): JSX.Element {
       <div className="script-editor">
         <div className="script-left">
           <div className="script-files">
-            <div className="script-files-header">
-              <span className="script-files-title">📂 脚本文件</span>
-              <button className="btn btn-sm btn-primary" onClick={() => setPromptMode('script')}>＋ 新建脚本</button>
+            <div className="script-files-actions">
+              <button className="btn btn-primary" onClick={() => setPromptMode('script')}>＋ 新建脚本</button>
+              <button className="btn btn-primary" onClick={() => setShowFileList((v) => !v)}>打开已有脚本</button>
             </div>
-            <div className="script-files-list">
-              <div className="script-files-empty">还没有脚本文件，点右上角「＋ 新建脚本」创建一个。</div>
-            </div>
+            {showFileList && (
+              <div className="script-files-list">
+                <div className="script-files-empty">还没有脚本文件，点「＋ 新建脚本」创建一个。</div>
+              </div>
+            )}
           </div>
         </div>
         {promptModal}
@@ -270,28 +273,30 @@ export default function ScriptEditor(): JSX.Element {
     <div className="script-editor">
       <div className="script-left">
         <div className="script-files">
-          <div className="script-files-header">
-            <span className="script-files-title">📂 脚本文件</span>
-            <button className="btn btn-sm btn-primary" onClick={() => setPromptMode('script')}>＋ 新建脚本</button>
+          <div className="script-files-actions">
+            <button className="btn btn-primary" onClick={() => setPromptMode('script')}>＋ 新建脚本</button>
+            <button className="btn btn-primary" onClick={() => setShowFileList((v) => !v)}>打开已有脚本</button>
           </div>
-          <div className="script-files-list">
-            {project.chapters.length === 0 ? (
-              <div className="script-files-empty">还没有脚本文件，点右上角「＋ 新建脚本」创建一个。</div>
-            ) : (
-              project.chapters.map((c) => (
-                <div
-                  key={c.id}
-                  className={'script-file' + (c.id === chapter.id ? ' active' : '')}
-                  onClick={() => selectChapter(c.id)}
-                  onContextMenu={(e) => onScriptContext(e, 'chapter')}
-                  title={`打开 ${c.name}.rpy`}
-                >
-                  <span className="script-file-icon">📄</span>
-                  <span className="script-file-name">{c.name}.rpy</span>
-                </div>
-              ))
-            )}
-          </div>
+          {showFileList && (
+            <div className="script-files-list">
+              {project.chapters.length === 0 ? (
+                <div className="script-files-empty">还没有脚本文件，点「＋ 新建脚本」创建一个。</div>
+              ) : (
+                project.chapters.map((c) => (
+                  <div
+                    key={c.id}
+                    className={'script-file' + (c.id === chapter.id ? ' active' : '')}
+                    onClick={() => selectChapter(c.id)}
+                    onContextMenu={(e) => onScriptContext(e, 'chapter')}
+                    title={`打开 ${c.name}.rpy`}
+                  >
+                    <span className="script-file-icon">📄</span>
+                    <span className="script-file-name">{c.name}.rpy</span>
+                  </div>
+                ))
+              )}
+            </div>
+          )}
         </div>
 
         <div className="script-toolbar">
