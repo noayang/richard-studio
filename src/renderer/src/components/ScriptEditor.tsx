@@ -18,6 +18,28 @@ function joinWin(a: string, b: string): string {
   return a.replace(/[\\/]+$/, '') + '\\' + b
 }
 
+// Richard Studio 自动生成的系统脚本文件（由 saveProject / createProject 写盘）。
+// 这些文件被删除后对应功能会失效，脚本文件列表里会标记出来，删除时给出额外警告。
+const SYSTEM_SCRIPT_FILES: Record<string, string> = {
+  script: '默认剧情脚本（初始 label start）',
+  options: '游戏设置（分辨率 / 过渡 / 存档等）',
+  characters: '角色定义（头像 / 立绘 / 皮肤）',
+  screens: '界面（UI 编辑器里的所有界面）',
+  achievements: '成就系统',
+  scenes: '场景（背景图）',
+  dictionary: '辞典词条',
+  variables: '变量系统',
+  runtime: '运行时系统（HUD / 存档 / 主题）',
+  shop: '商店与背包',
+  gallery: '鉴赏画廊（CG / 音乐 / 片段）',
+  datesystem: '日程系统（日期 / 天气 / 日报）',
+  worldmap: '大地图'
+}
+
+function isSystemFile(name: string): boolean {
+  return Object.prototype.hasOwnProperty.call(SYSTEM_SCRIPT_FILES, name)
+}
+
 export default function ScriptEditor(): JSX.Element {
   const { project, addBlock, removeBlock, addChapter, removeChapter, replaceChapter, addFragment, removeFragment, currentProjectPath } = useEditor()
   const [chapterId, setChapterId] = useState(project.chapters[0]?.id ?? '')
@@ -283,18 +305,22 @@ export default function ScriptEditor(): JSX.Element {
               {project.chapters.length === 0 ? (
                 <div className="script-files-empty">还没有脚本文件，点「＋ 新建脚本」创建一个。</div>
               ) : (
-                project.chapters.map((c) => (
-                  <div
-                    key={c.id}
-                    className={'script-file' + (c.id === chapter.id ? ' active' : '')}
-                    onClick={() => selectChapter(c.id)}
-                    onContextMenu={(e) => onScriptContext(e, 'chapter')}
-                    title={`打开 ${c.name}.rpy`}
-                  >
-                    <span className="script-file-icon">📄</span>
-                    <span className="script-file-name">{c.name}.rpy</span>
-                  </div>
-                ))
+                project.chapters.map((c) => {
+                  const sys = isSystemFile(c.name)
+                  return (
+                    <div
+                      key={c.id}
+                      className={'script-file' + (sys ? ' system' : '') + (c.id === chapter.id ? ' active' : '')}
+                      onClick={() => selectChapter(c.id)}
+                      onContextMenu={(e) => onScriptContext(e, 'chapter')}
+                      title={sys ? `系统文件 · ${SYSTEM_SCRIPT_FILES[c.name]}` : `打开 ${c.name}.rpy`}
+                    >
+                      <span className="script-file-icon">{sys ? '🔒' : '📄'}</span>
+                      <span className="script-file-name">{c.name}.rpy</span>
+                      {sys && <span className="script-file-badge">系统</span>}
+                    </div>
+                  )
+                })
               )}
             </div>
           )}
@@ -404,9 +430,23 @@ export default function ScriptEditor(): JSX.Element {
           <div className="modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-title">删除脚本</div>
             <div className="script-hint">
-              确定要删除脚本 <b>{chapter.name}.rpy</b> 吗？
-              <br />
-              删除后该文件将从 game/ 目录移除，且无法恢复。
+              {isSystemFile(chapter.name) ? (
+                <>
+                  <div className="warning-banner" style={{ marginBottom: 10 }}>
+                    ⚠️ <b>{chapter.name}.rpy</b> 是系统文件！
+                  </div>
+                  它负责「{SYSTEM_SCRIPT_FILES[chapter.name]}」，删除后对应功能将失效，游戏可能无法正常运行。
+                  <br />
+                  <br />
+                  确定仍要删除吗？
+                </>
+              ) : (
+                <>
+                  确定要删除脚本 <b>{chapter.name}.rpy</b> 吗？
+                  <br />
+                  删除后该文件将从 game/ 目录移除，且无法恢复。
+                </>
+              )}
             </div>
             <div className="modal-actions">
               <button className="btn" onClick={() => setConfirmDeleteScript(false)}>取消</button>
