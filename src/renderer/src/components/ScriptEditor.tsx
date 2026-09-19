@@ -34,6 +34,7 @@ export default function ScriptEditor(): JSX.Element {
   const [scriptMenu, setScriptMenu] = useState<{ x: number; y: number; kind: 'chapter' | 'fragment' } | null>(null)
   const [pendingOverwrite, setPendingOverwrite] = useState<string | null>(null)
   const [showFileList, setShowFileList] = useState(true)
+  const [confirmDeleteScript, setConfirmDeleteScript] = useState(false)
 
   // 视图模式：指令（块列表）/ 代码（原始 .rpy 文本）
   const [mode, setMode] = useState<'blocks' | 'code'>('blocks')
@@ -315,7 +316,7 @@ export default function ScriptEditor(): JSX.Element {
                   ))}
                 </select>
               </span>
-              <button className="btn btn-sm btn-danger" onClick={deleteScript}>删除脚本</button>
+              <button className="btn btn-sm btn-danger" onClick={() => setConfirmDeleteScript(true)}>删除脚本</button>
               <button className="btn btn-sm" onClick={() => setPromptMode('label')}>＋ label</button>
               <button className="btn btn-sm btn-danger" onClick={deleteLabel}>删除 label</button>
               <button className="btn btn-sm btn-primary" onClick={() => void doSave()}>保存</button>
@@ -384,7 +385,7 @@ export default function ScriptEditor(): JSX.Element {
       {scriptMenu && mode === 'blocks' && (
         <div className="context-menu" style={{ left: scriptMenu.x, top: scriptMenu.y }} onClick={(e) => e.stopPropagation()}>
           {scriptMenu.kind === 'chapter' ? (
-            <div className="context-menu-item" onClick={() => { setScriptMenu(null); void deleteScript() }}>
+            <div className="context-menu-item" onClick={() => { setScriptMenu(null); setConfirmDeleteScript(true) }}>
               🗑 删除脚本「{chapter.name}」
             </div>
           ) : (
@@ -397,6 +398,23 @@ export default function ScriptEditor(): JSX.Element {
 
       {promptModal}
       {overwriteModal}
+
+      {confirmDeleteScript && (
+        <div className="modal-overlay" onClick={() => setConfirmDeleteScript(false)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-title">删除脚本</div>
+            <div className="script-hint">
+              确定要删除脚本 <b>{chapter.name}.rpy</b> 吗？
+              <br />
+              删除后该文件将从 game/ 目录移除，且无法恢复。
+            </div>
+            <div className="modal-actions">
+              <button className="btn" onClick={() => setConfirmDeleteScript(false)}>取消</button>
+              <button className="btn btn-danger" onClick={() => { setConfirmDeleteScript(false); void deleteScript() }}>删除</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
