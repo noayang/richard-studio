@@ -31,6 +31,7 @@ export default function ScriptEditor(): JSX.Element {
   const [promptName, setPromptName] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
+  const [scriptMenu, setScriptMenu] = useState<{ x: number; y: number; kind: 'chapter' | 'fragment' } | null>(null)
 
   // 视图模式：指令（块列表）/ 代码（原始 .rpy 文本）
   const [mode, setMode] = useState<'blocks' | 'code'>('blocks')
@@ -137,6 +138,11 @@ export default function ScriptEditor(): JSX.Element {
     setMenu({ x: e.clientX, y: e.clientY, afterId: blockId })
   }
 
+  const onScriptContext = (e: React.MouseEvent, kind: 'chapter' | 'fragment'): void => {
+    e.preventDefault()
+    setScriptMenu({ x: e.clientX, y: e.clientY, kind })
+  }
+
   const deleteScript = async (): Promise<void> => {
     setError(null)
     if (chapter.filePath) {
@@ -220,16 +226,22 @@ export default function ScriptEditor(): JSX.Element {
 
           {mode === 'blocks' ? (
             <>
-              <select value={chapterId} onChange={(e) => { setChapterId(e.target.value); const ch = project.chapters.find((c) => c.id === e.target.value); setFragmentId(ch?.fragments[0]?.id ?? '') }}>
-                {project.chapters.map((c) => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
-                ))}
-              </select>
-              <select value={fragmentId} onChange={(e) => setFragmentId(e.target.value)}>
-                {chapter.fragments.map((f) => (
-                  <option key={f.id} value={f.id}>{f.name}</option>
-                ))}
-              </select>
+              <span className="script-select" onContextMenu={(e) => onScriptContext(e, 'chapter')} title="下拉选择已有脚本 · 右键删除">
+                <span className="script-select-label">脚本</span>
+                <select value={chapterId} onChange={(e) => { setChapterId(e.target.value); const ch = project.chapters.find((c) => c.id === e.target.value); setFragmentId(ch?.fragments[0]?.id ?? '') }}>
+                  {project.chapters.map((c) => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </select>
+              </span>
+              <span className="script-select" onContextMenu={(e) => onScriptContext(e, 'fragment')} title="下拉选择已有 label · 右键删除">
+                <span className="script-select-label">label</span>
+                <select value={fragmentId} onChange={(e) => setFragmentId(e.target.value)}>
+                  {chapter.fragments.map((f) => (
+                    <option key={f.id} value={f.id}>{f.name}</option>
+                  ))}
+                </select>
+              </span>
               <button className="btn btn-sm" onClick={() => setPromptMode('script')}>＋ script</button>
               <button className="btn btn-sm btn-danger" onClick={deleteScript}>删除 script</button>
               <button className="btn btn-sm" onClick={() => setPromptMode('label')}>＋ label</button>
@@ -290,6 +302,20 @@ export default function ScriptEditor(): JSX.Element {
               ))}
             </div>
           ))}
+        </div>
+      )}
+
+      {scriptMenu && mode === 'blocks' && (
+        <div className="context-menu" style={{ left: scriptMenu.x, top: scriptMenu.y }} onClick={(e) => e.stopPropagation()}>
+          {scriptMenu.kind === 'chapter' ? (
+            <div className="context-menu-item" onClick={() => { setScriptMenu(null); void deleteScript() }}>
+              🗑 删除脚本「{chapter.name}」
+            </div>
+          ) : (
+            <div className="context-menu-item" onClick={() => { setScriptMenu(null); void deleteLabel() }}>
+              🗑 删除 label「{fragment.name}」
+            </div>
+          )}
         </div>
       )}
 
