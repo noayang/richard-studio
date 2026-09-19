@@ -35,7 +35,7 @@ export default function BlockInspector(): JSX.Element | null {
 }
 
 function BlockEditor({ loc }: { loc: Located }): JSX.Element {
-  const { project, updateBlock, removeBlock } = useEditor()
+  const { project, updateBlock, removeBlock, setSelectedBlock } = useEditor()
   const { chapter, fragment, block } = loc
   const def = blockDef(block.type)
   const schema = def.schema ?? {}
@@ -58,7 +58,10 @@ function BlockEditor({ loc }: { loc: Located }): JSX.Element {
     <div className="block-inspector">
       <div className="block-inspector-head">
         <span className="block-type">{def.label}</span>
-        <button className="btn btn-sm btn-danger" onClick={() => removeBlock(chapter.id, fragment.id, block.id)}>删除块</button>
+        <div style={{ display: 'flex', gap: 6 }}>
+          <button className="btn btn-sm btn-primary" onClick={() => setSelectedBlock(null)}>✓ 完成</button>
+          <button className="btn btn-sm btn-danger" onClick={() => removeBlock(chapter.id, fragment.id, block.id)}>删除块</button>
+        </div>
       </div>
 
       {hasText && (

@@ -41,7 +41,7 @@ function isSystemFile(name: string): boolean {
 }
 
 export default function ScriptEditor(): JSX.Element {
-  const { project, addBlock, removeBlock, addChapter, removeChapter, replaceChapter, addFragment, removeFragment, currentProjectPath } = useEditor()
+  const { project, addBlock, removeBlock, addChapter, removeChapter, replaceChapter, addFragment, removeFragment, currentProjectPath, setSelectedBlock } = useEditor()
   const [chapterId, setChapterId] = useState(project.chapters[0]?.id ?? '')
   const chapter = project.chapters.find((c) => c.id === chapterId) ?? project.chapters[0]
 
@@ -200,6 +200,7 @@ export default function ScriptEditor(): JSX.Element {
     if (!fragment) return
     const block = createBlock(type)
     addBlock(chapter.id, fragment.id, block)
+    setSelectedBlock(block.id)
     setMenu(null)
   }
 
