@@ -156,9 +156,13 @@ body {
 
 /* ---- 脚本编辑器（左脚本 + 右预览） ---- */
 .script-editor { flex: 1; display: flex; min-width: 0; }
-.script-left { width: 400px; flex-shrink: 0; display: flex; flex-direction: column; border-right: 1px solid var(--border); background: var(--bg); min-width: 0; }
+.script-left { width: 560px; flex-shrink: 0; display: flex; flex-direction: column; border-right: 1px solid var(--border); background: var(--bg); min-width: 0; }
 .script-right { flex: 1; display: flex; min-width: 0; background: #0a0b0f; }
 .script-files { background: var(--bg-2); border-bottom: 1px solid var(--border); }
+.script-files-header { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; cursor: pointer; user-select: none; }
+.script-files-header:hover { background: var(--bg); }
+.script-files-title { color: var(--text); font-size: 12px; font-weight: 600; }
+.script-files-toggle { color: var(--text-dim); font-size: 11px; }
 .script-files-actions { display: flex; flex-direction: column; gap: 8px; padding: 10px 12px; }
 .script-files-actions .btn { width: 100%; }
 .script-files-list { padding: 0 6px 8px; display: flex; flex-direction: column; gap: 2px; max-height: 180px; overflow-y: auto; }

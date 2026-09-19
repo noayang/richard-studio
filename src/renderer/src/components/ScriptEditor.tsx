@@ -56,6 +56,7 @@ export default function ScriptEditor(): JSX.Element {
   const [scriptMenu, setScriptMenu] = useState<{ x: number; y: number; kind: 'chapter' | 'fragment' } | null>(null)
   const [pendingOverwrite, setPendingOverwrite] = useState<string | null>(null)
   const [showFileList, setShowFileList] = useState(true)
+  const [filesCollapsed, setFilesCollapsed] = useState(false)
   const [confirmDeleteScript, setConfirmDeleteScript] = useState(false)
 
   // 视图模式：指令（块列表）/ 代码（原始 .rpy 文本）
@@ -174,21 +175,52 @@ export default function ScriptEditor(): JSX.Element {
     </div>
   ) : null
 
+  const filePanel = (
+    <div className="script-files">
+      <div className="script-files-header" onClick={() => setFilesCollapsed((v) => !v)}>
+        <span className="script-files-title">📂 脚本文件</span>
+        <span className="script-files-toggle">{filesCollapsed ? '▾ 展开' : '▴ 收起'}</span>
+      </div>
+      {!filesCollapsed && (
+        <>
+          <div className="script-files-actions">
+            <button className="btn btn-primary" onClick={() => setPromptMode('script')}>＋ 新建脚本</button>
+            <button className="btn btn-primary" onClick={() => setShowFileList((v) => !v)}>打开已有脚本</button>
+          </div>
+          {showFileList && (
+            <div className="script-files-list">
+              {project.chapters.length === 0 ? (
+                <div className="script-files-empty">还没有脚本文件，点「＋ 新建脚本」创建一个。</div>
+              ) : (
+                project.chapters.map((c) => {
+                  const sys = isSystemFile(c.name)
+                  return (
+                    <div
+                      key={c.id}
+                      className={'script-file' + (sys ? ' system' : '') + (c.id === chapter?.id ? ' active' : '')}
+                      onClick={() => selectChapter(c.id)}
+                      onContextMenu={(e) => onScriptContext(e, 'chapter')}
+                      title={sys ? `系统文件 · ${SYSTEM_SCRIPT_FILES[c.name]}` : `打开 ${c.name}.rpy`}
+                    >
+                      <span className="script-file-icon">{sys ? '🔒' : '📄'}</span>
+                      <span className="script-file-name">{c.name}.rpy</span>
+                      {sys && <span className="script-file-badge">系统</span>}
+                    </div>
+                  )
+                })
+              )}
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  )
+
   if (!chapter) {
     return (
       <div className="script-editor">
         <div className="script-left">
-          <div className="script-files">
-            <div className="script-files-actions">
-              <button className="btn btn-primary" onClick={() => setPromptMode('script')}>＋ 新建脚本</button>
-              <button className="btn btn-primary" onClick={() => setShowFileList((v) => !v)}>打开已有脚本</button>
-            </div>
-            {showFileList && (
-              <div className="script-files-list">
-                <div className="script-files-empty">还没有脚本文件，点「＋ 新建脚本」创建一个。</div>
-              </div>
-            )}
-          </div>
+          {filePanel}
         </div>
         {promptModal}
         {overwriteModal}
@@ -296,36 +328,7 @@ export default function ScriptEditor(): JSX.Element {
   return (
     <div className="script-editor">
       <div className="script-left">
-        <div className="script-files">
-          <div className="script-files-actions">
-            <button className="btn btn-primary" onClick={() => setPromptMode('script')}>＋ 新建脚本</button>
-            <button className="btn btn-primary" onClick={() => setShowFileList((v) => !v)}>打开已有脚本</button>
-          </div>
-          {showFileList && (
-            <div className="script-files-list">
-              {project.chapters.length === 0 ? (
-                <div className="script-files-empty">还没有脚本文件，点「＋ 新建脚本」创建一个。</div>
-              ) : (
-                project.chapters.map((c) => {
-                  const sys = isSystemFile(c.name)
-                  return (
-                    <div
-                      key={c.id}
-                      className={'script-file' + (sys ? ' system' : '') + (c.id === chapter.id ? ' active' : '')}
-                      onClick={() => selectChapter(c.id)}
-                      onContextMenu={(e) => onScriptContext(e, 'chapter')}
-                      title={sys ? `系统文件 · ${SYSTEM_SCRIPT_FILES[c.name]}` : `打开 ${c.name}.rpy`}
-                    >
-                      <span className="script-file-icon">{sys ? '🔒' : '📄'}</span>
-                      <span className="script-file-name">{c.name}.rpy</span>
-                      {sys && <span className="script-file-badge">系统</span>}
-                    </div>
-                  )
-                })
-              )}
-            </div>
-          )}
-        </div>
+        {filePanel}
 
         <div className="script-toolbar">
           <div className="mode-switch">
