@@ -508,6 +508,11 @@ export function registerIpcHandlers(): void {
       await fs.mkdir(join(root, 'game'), { recursive: true })
       await fs.writeFile(join(root, 'game', 'script.rpy'), 'label start:\n    show screen hud\n    "欢迎来到这个项目。"\n    return\n', 'utf-8')
       await fs.writeFile(join(root, 'game', 'options.rpy'), '## 由 Richard Studio 创建\n', 'utf-8')
+      // 编辑器自带功能对应的系统脚本（大地图 / 画廊 / 商店 / 日程 / 辞典等）也一并生成，
+      // 这样每个新项目一开始就拥有这些脚本文件，后续由各面板导出内容写入。
+      for (const f of ['characters', 'screens', 'achievements', 'scenes', 'dictionary', 'variables', 'runtime', 'shop', 'gallery', 'datesystem', 'worldmap']) {
+        await fs.writeFile(join(root, 'game', `${f}.rpy`), `## ${f}.rpy —— Richard Studio 自动生成的系统脚本\n`, 'utf-8')
+      }
       // 资产归档目录结构
       for (const meta of Object.values(CATEGORY_META)) {
         await fs.mkdir(join(root, 'assets', meta.folder), { recursive: true })
