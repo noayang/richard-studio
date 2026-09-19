@@ -109,7 +109,13 @@ export default function App(): JSX.Element {
             <PropertyPanel />
           </div>
         )}
-        {activeTab === 'script' && <ScriptEditor />}
+        {/*
+          脚本编辑器保持常驻挂载（切页仅隐藏），这样切走再切回来
+          仍停留在上次的章节 / label / 视图模式，不会丢失编辑状态。
+        */}
+        <div style={{ flex: 1, display: activeTab === 'script' ? 'flex' : 'none', minWidth: 0 }}>
+          <ScriptEditor />
+        </div>
         {activeTab === 'characters' && <CharactersPanel />}
         {activeTab === 'achievements' && <AchievementsPanel />}
         {activeTab === 'dictionary' && <DictionaryPanel />}

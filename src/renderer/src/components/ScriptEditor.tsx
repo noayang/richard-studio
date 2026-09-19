@@ -32,6 +32,7 @@ export default function ScriptEditor(): JSX.Element {
   const [error, setError] = useState<string | null>(null)
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
   const [scriptMenu, setScriptMenu] = useState<{ x: number; y: number; kind: 'chapter' | 'fragment' } | null>(null)
+  const [pendingOverwrite, setPendingOverwrite] = useState<string | null>(null)
 
   // 视图模式：指令（块列表）/ 代码（原始 .rpy 文本）
   const [mode, setMode] = useState<'blocks' | 'code'>('blocks')
@@ -51,6 +52,20 @@ export default function ScriptEditor(): JSX.Element {
     }
   }
 
+  const createScript = async (base: string): Promise<void> => {
+    const filePath = joinWin(gameDir, `${base}.rpy`)
+    try {
+      await window.renpyStudio.writeFile(filePath, 'label start:\n    return\n')
+      const frag: Fragment = { id: uid('fg-'), name: 'start', blocks: [] }
+      const ch: Chapter = { id: uid('cp-'), name: base, filePath, fragments: [frag] }
+      addChapter(ch)
+      setChapterId(ch.id)
+      setFragmentId(frag.id)
+    } catch (err) {
+      setError(String(err))
+    }
+  }
+
   const confirmPrompt = async (): Promise<void> => {
     const name = promptName.trim()
     setError(null)
@@ -64,17 +79,15 @@ export default function ScriptEditor(): JSX.Element {
         return
       }
       const base = name.replace(/\.rpy$/i, '')
-      const filePath = joinWin(gameDir, `${base}.rpy`)
-      try {
-        await window.renpyStudio.writeFile(filePath, 'label start:\n    return\n')
-        const frag: Fragment = { id: uid('fg-'), name: 'start', blocks: [] }
-        const ch: Chapter = { id: uid('cp-'), name: base, filePath, fragments: [frag] }
-        addChapter(ch)
-        setChapterId(ch.id)
-        setFragmentId(frag.id)
-      } catch (err) {
-        setError(String(err))
+      // 重名检查：已存在同名脚本则询问覆盖 / 取消
+      const exists = project.chapters.some((c) => c.name.toLowerCase() === base.toLowerCase())
+      if (exists) {
+        setPendingOverwrite(base)
+        return
       }
+      await createScript(base)
+      setPromptMode(null)
+      setPromptName('')
     } else if (chapter) {
       // 新增 label
       if (chapter.filePath) {
@@ -93,6 +106,32 @@ export default function ScriptEditor(): JSX.Element {
     setPromptMode(null)
     setPromptName('')
   }
+
+  const confirmOverwrite = async (): Promise<void> => {
+    const base = pendingOverwrite
+    setPendingOverwrite(null)
+    setPromptMode(null)
+    setPromptName('')
+    if (!base) return
+    await createScript(base)
+  }
+
+  const overwriteModal = pendingOverwrite ? (
+    <div className="modal-overlay" onClick={() => setPendingOverwrite(null)}>
+      <div className="modal" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-title">脚本已存在</div>
+        <div className="script-hint">
+          项目里已经有一个叫 <b>{pendingOverwrite}.rpy</b> 的脚本了。
+          <br />
+          是否覆盖它？（覆盖后原脚本内容将被替换为空白新脚本）
+        </div>
+        <div className="modal-actions">
+          <button className="btn" onClick={() => setPendingOverwrite(null)}>取消</button>
+          <button className="btn btn-danger" onClick={confirmOverwrite}>覆盖</button>
+        </div>
+      </div>
+    </div>
+  ) : null
 
   const promptModal = promptMode ? (
     <div className="modal-overlay" onClick={() => setPromptMode(null)}>
@@ -123,6 +162,7 @@ export default function ScriptEditor(): JSX.Element {
           </div>
         </div>
         {promptModal}
+        {overwriteModal}
       </div>
     )
   }
@@ -320,6 +360,7 @@ export default function ScriptEditor(): JSX.Element {
       )}
 
       {promptModal}
+      {overwriteModal}
     </div>
   )
 }
