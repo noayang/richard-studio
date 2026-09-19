@@ -150,15 +150,18 @@ export default function ScriptEditor(): JSX.Element {
     </div>
   ) : null
 
-  if (!chapter || !fragment) {
+  if (!chapter) {
     return (
       <div className="script-editor">
         <div className="script-left">
-          <div className="empty-state">
-            还没有脚本文件。
-            <br />
-            <br />
-            <button className="btn btn-primary" onClick={() => setPromptMode('script')}>＋ 新增 script（章节）</button>
+          <div className="script-files">
+            <div className="script-files-header">
+              <span className="script-files-title">📂 脚本文件</span>
+              <button className="btn btn-sm btn-primary" onClick={() => setPromptMode('script')}>＋ 新建脚本</button>
+            </div>
+            <div className="script-files-list">
+              <div className="script-files-empty">还没有脚本文件，点右上角「＋ 新建脚本」创建一个。</div>
+            </div>
           </div>
         </div>
         {promptModal}
@@ -168,6 +171,7 @@ export default function ScriptEditor(): JSX.Element {
   }
 
   const insertBlock = (type: BlockType): void => {
+    if (!fragment) return
     const block = createBlock(type)
     addBlock(chapter.id, fragment.id, block)
     setMenu(null)
@@ -176,6 +180,12 @@ export default function ScriptEditor(): JSX.Element {
   const onContextMenu = (e: React.MouseEvent, blockId: string | null): void => {
     e.preventDefault()
     setMenu({ x: e.clientX, y: e.clientY, afterId: blockId })
+  }
+
+  const selectChapter = (id: string): void => {
+    setChapterId(id)
+    const ch = project.chapters.find((c) => c.id === id)
+    setFragmentId(ch?.fragments[0]?.id ?? '')
   }
 
   const onScriptContext = (e: React.MouseEvent, kind: 'chapter' | 'fragment'): void => {
@@ -201,6 +211,7 @@ export default function ScriptEditor(): JSX.Element {
   }
 
   const deleteLabel = async (): Promise<void> => {
+    if (!fragment) return
     setError(null)
     if (chapter.filePath) {
       try {
@@ -258,6 +269,31 @@ export default function ScriptEditor(): JSX.Element {
   return (
     <div className="script-editor">
       <div className="script-left">
+        <div className="script-files">
+          <div className="script-files-header">
+            <span className="script-files-title">📂 脚本文件</span>
+            <button className="btn btn-sm btn-primary" onClick={() => setPromptMode('script')}>＋ 新建脚本</button>
+          </div>
+          <div className="script-files-list">
+            {project.chapters.length === 0 ? (
+              <div className="script-files-empty">还没有脚本文件，点右上角「＋ 新建脚本」创建一个。</div>
+            ) : (
+              project.chapters.map((c) => (
+                <div
+                  key={c.id}
+                  className={'script-file' + (c.id === chapter.id ? ' active' : '')}
+                  onClick={() => selectChapter(c.id)}
+                  onContextMenu={(e) => onScriptContext(e, 'chapter')}
+                  title={`打开 ${c.name}.rpy`}
+                >
+                  <span className="script-file-icon">📄</span>
+                  <span className="script-file-name">{c.name}.rpy</span>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+
         <div className="script-toolbar">
           <div className="mode-switch">
             <button className={'chip' + (mode === 'blocks' ? ' active' : '')} onClick={() => setMode('blocks')}>指令</button>
@@ -266,14 +302,6 @@ export default function ScriptEditor(): JSX.Element {
 
           {mode === 'blocks' ? (
             <>
-              <span className="script-select" onContextMenu={(e) => onScriptContext(e, 'chapter')} title="下拉选择已有脚本 · 右键删除">
-                <span className="script-select-label">脚本</span>
-                <select value={chapterId} onChange={(e) => { setChapterId(e.target.value); const ch = project.chapters.find((c) => c.id === e.target.value); setFragmentId(ch?.fragments[0]?.id ?? '') }}>
-                  {project.chapters.map((c) => (
-                    <option key={c.id} value={c.id}>{c.name}</option>
-                  ))}
-                </select>
-              </span>
               <span className="script-select" onContextMenu={(e) => onScriptContext(e, 'fragment')} title="下拉选择已有 label · 右键删除">
                 <span className="script-select-label">label</span>
                 <select value={fragmentId} onChange={(e) => setFragmentId(e.target.value)}>
@@ -282,8 +310,7 @@ export default function ScriptEditor(): JSX.Element {
                   ))}
                 </select>
               </span>
-              <button className="btn btn-sm" onClick={() => setPromptMode('script')}>＋ script</button>
-              <button className="btn btn-sm btn-danger" onClick={deleteScript}>删除 script</button>
+              <button className="btn btn-sm btn-danger" onClick={deleteScript}>删除脚本</button>
               <button className="btn btn-sm" onClick={() => setPromptMode('label')}>＋ label</button>
               <button className="btn btn-sm btn-danger" onClick={deleteLabel}>删除 label</button>
               <button className="btn btn-sm btn-primary" onClick={() => void doSave()}>保存</button>
@@ -312,15 +339,19 @@ export default function ScriptEditor(): JSX.Element {
           />
         ) : (
           <>
-            <div className="block-list" onContextMenu={(e) => onContextMenu(e, null)}>
-              {fragment.blocks.length === 0 && (
-                <div className="empty-state">空白片段 —— 右键插入第一个块</div>
-              )}
-              {fragment.blocks.map((b, i) => (
-                <BlockRow key={b.id} block={b} index={i} chapterId={chapter.id} fragmentId={fragment.id} onContextMenu={onContextMenu} />
-              ))}
-            </div>
-            <BlockInspector />
+            {fragment ? (
+              <div className="block-list" onContextMenu={(e) => onContextMenu(e, null)}>
+                {fragment.blocks.length === 0 && (
+                  <div className="empty-state">空白片段 —— 右键插入第一个块</div>
+                )}
+                {fragment.blocks.map((b, i) => (
+                  <BlockRow key={b.id} block={b} index={i} chapterId={chapter.id} fragmentId={fragment.id} onContextMenu={onContextMenu} />
+                ))}
+              </div>
+            ) : (
+              <div className="empty-state">这个脚本文件里还没有 label，点上方「＋ label」添加一个开始写剧情。</div>
+            )}
+            {fragment && <BlockInspector />}
           </>
         )}
       </div>
@@ -353,7 +384,7 @@ export default function ScriptEditor(): JSX.Element {
             </div>
           ) : (
             <div className="context-menu-item" onClick={() => { setScriptMenu(null); void deleteLabel() }}>
-              🗑 删除 label「{fragment.name}」
+              🗑 删除 label「{fragment?.name ?? ''}」
             </div>
           )}
         </div>

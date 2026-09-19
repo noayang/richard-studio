@@ -158,6 +158,16 @@ body {
 .script-editor { flex: 1; display: flex; min-width: 0; }
 .script-left { width: 400px; flex-shrink: 0; display: flex; flex-direction: column; border-right: 1px solid var(--border); background: var(--bg); min-width: 0; }
 .script-right { flex: 1; display: flex; min-width: 0; background: #0a0b0f; }
+.script-files { background: var(--bg-2); border-bottom: 1px solid var(--border); }
+.script-files-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; gap: 8px; }
+.script-files-title { color: var(--text); font-size: 13px; font-weight: 600; }
+.script-files-list { padding: 0 6px 8px; display: flex; flex-direction: column; gap: 2px; max-height: 180px; overflow-y: auto; }
+.script-files-empty { color: var(--text-dim); font-size: 12px; padding: 4px 8px 8px; }
+.script-file { display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 6px; cursor: pointer; color: var(--text); font-size: 13px; }
+.script-file:hover { background: var(--bg); }
+.script-file.active { background: var(--accent-soft, rgba(127,212,200,0.15)); color: var(--accent, #7fd4c8); }
+.script-file-icon { opacity: 0.6; font-size: 13px; }
+.script-file-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .script-toolbar { display: flex; gap: 8px; align-items: center; padding: 10px 12px; background: var(--bg-2); border-bottom: 1px solid var(--border); flex-wrap: wrap; }
 .script-toolbar select { background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 5px 8px; border-radius: 6px; max-width: 140px; }
 .script-select { display: inline-flex; align-items: center; gap: 4px; }
